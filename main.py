@@ -1,6 +1,6 @@
-import gymnasium as gym	
+import gym
 
-env = gym.make("LunarLander-v2", render_mode="human")
+env = gym.make("procgen:procgen-coinrun-v0", render_mode="human")
 
 for i_episode in range(20):	
     observation = env.reset()	
@@ -9,10 +9,11 @@ for i_episode in range(20):
         env.render()	
         print(observation)	
 
-        action = env.action_space.sample()	
-        observation, reward, terminated, truncated, info = env.step(action)
+        action = env.action_space.sample()
+        observation, reward, done, info = env.step(action)
 
-        if terminated or truncated:
-            break 
+        if done:
+            print("Episode finished after {} time steps".format(t+1))
+            break
 
 env.close()
