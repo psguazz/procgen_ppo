@@ -1,3 +1,4 @@
+import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Dense
 
@@ -16,3 +17,11 @@ class Critic(keras.Model):
         state = self.l3(state)
 
         return state
+
+    def eval(self, state):
+        state = tf.convert_to_tensor([state])
+
+        value = self(state)
+        value = value.numpy()[0]
+
+        return value
