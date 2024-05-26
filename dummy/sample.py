@@ -12,8 +12,5 @@ class Agent:
 
         return action, prob, val
 
-    def remember(self, *args):
-        print("Remembering a bunch of stuff...")
-
-    def learn(self):
-        print("(Not) learning...")
+    def remember_and_learn(self, *args):
+        pass
