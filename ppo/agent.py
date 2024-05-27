@@ -1,7 +1,7 @@
 from tensorflow.keras.optimizers import Adam
-from pg.actor import Actor
-from pg.critic import Critic
-from pg.memory import Memory
+from ppo.actor import Actor
+from ppo.critic import Critic
+from ppo.memory import Memory
 
 ALPHA = 0.0003
 

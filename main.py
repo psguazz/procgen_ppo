@@ -1,5 +1,5 @@
 import gym
-from dummy.sample import Agent
+from ppo.agent import Agent
 
 GAME = "procgen:procgen-coinrun-v0"
 STEPS = 2000
