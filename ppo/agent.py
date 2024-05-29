@@ -5,7 +5,7 @@ from tensorflow.keras.optimizers import Adam
 from ppo.actor import Actor
 from ppo.critic import Critic
 from ppo.memory import Memory
-from ppo.config import ALPHA, GAMMA, CLIP, EPOCHS
+from ppo.config import ALPHA, GAMMA, CLIP, EPOCHS, ACTOR_PATH, CRITIC_PATH
 
 
 class Agent:
@@ -15,6 +15,12 @@ class Agent:
 
         self.critic = Critic()
         self.critic.compile(optimizer=Adam(learning_rate=ALPHA))
+
+        try:
+            self.actor.load_weights(ACTOR_PATH)
+            self.critic.load_weights(CRITIC_PATH)
+        except FileNotFoundError:
+            pass
 
         self.memory = Memory()
 
@@ -87,3 +93,6 @@ class Agent:
                 critic_grads = tape.gradient(critic_loss, critic_params)
                 critic_args = zip(critic_grads, critic_params)
                 self.critic.optimizer.apply_gradients(critic_args)
+
+        self.actor.save_weights(ACTOR_PATH)
+        self.critic.save_weights(CRITIC_PATH)
