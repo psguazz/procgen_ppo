@@ -14,11 +14,16 @@ if __name__ == '__main__':
     s_t = env.reset()
 
     agent = Agent(n_actions=env.action_space.n)
-    steps = 0
+
+    levels = 1
+    all_steps = 1
+    level_steps = 1
 
     for step in range(STEPS):
-        print(steps)
-        steps += 1
+        print(f"{levels} / {level_steps} / {all_steps}")
+        all_steps += 1
+        level_steps += 1
+
         a_t, p_t = agent.choose([s_t])[0]
         s_t1, r_t1, done, info = env.step(a_t)
 
@@ -31,9 +36,10 @@ if __name__ == '__main__':
             done=done
         )
 
-        if done or steps > 500:
+        if done:
             s_t = env.reset()
-            steps = 0
+            level_steps = 0
+            levels += 1
         else:
             s_t = s_t1
 
