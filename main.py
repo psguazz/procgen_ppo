@@ -5,7 +5,12 @@ GAME = "procgen:procgen-coinrun-v0"
 STEPS = 2000
 
 if __name__ == '__main__':
-    env = gym.make("procgen:procgen-coinrun-v0", render_mode="human")
+    env = gym.make(
+        "procgen:procgen-coinrun-v0",
+        distribution_mode="easy",
+        render_mode="human"
+    )
+
     s_t = env.reset()
 
     agent = Agent(n_actions=env.action_space.n)
