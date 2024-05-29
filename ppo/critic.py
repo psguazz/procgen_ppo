@@ -1,4 +1,3 @@
-import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Dense
 
@@ -11,17 +10,9 @@ class Critic(keras.Model):
         self.l2 = Dense(256, activation="relu")
         self.l3 = Dense(1, activation=None)
 
-    def call(self, state):
-        state = self.l1(state)
-        state = self.l2(state)
-        state = self.l3(state)
+    def call(self, states):
+        states = self.l1(states)
+        states = self.l2(states)
+        states = self.l3(states)
 
-        return state
-
-    def eval(self, state):
-        state = tf.convert_to_tensor([state])
-
-        value = self(state)
-        value = value.numpy()[0]
-
-        return value
+        return states

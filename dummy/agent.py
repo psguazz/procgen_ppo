@@ -8,9 +8,11 @@ class Agent:
     def choose(self, state):
         action = random.randint(0, self.n_actions)
         prob = 1/self.n_actions
-        val = 0
 
-        return action, prob, val
+        return action, prob
+
+    def eval(self, state):
+        return 0
 
     def remember_and_learn(self, *args):
         pass
