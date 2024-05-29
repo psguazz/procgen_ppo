@@ -22,8 +22,11 @@ class Agent:
 
         self.memory = Memory()
 
+    def preprocess(self, states):
+        return tf.convert_to_tensor(states, dtype=tf.float32) / 255.0
+
     def choose(self, states):
-        states = tf.convert_to_tensor(states)
+        states = self.preprocess(states)
 
         probs = self.actor(states)
         dist = tfp.distributions.Categorical(probs)
@@ -33,7 +36,7 @@ class Agent:
         return list(zip(action.numpy(), log_prob.numpy()))
 
     def eval(self, states):
-        states = tf.convert_to_tensor(states)
+        states = self.preprocess(states)
 
         value = self.critic(states)
 
@@ -66,7 +69,7 @@ class Agent:
                     dist = tfp.distributions.Categorical(probs)
                     probs = dist.log_prob(batch.a_ts)
 
-                    p_ratio = tf.math.exp(probs - batch.p_t)
+                    p_ratio = tf.math.exp(probs - batch.p_ts)
                     p_clip = tf.clip_by_value(p_ratio, 1-CLIP, 1+CLIP)
                     p_weights = p_ratio * batch.a_ts
                     p_clip_weights = p_clip * batch.a_ts

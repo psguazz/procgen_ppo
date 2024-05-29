@@ -14,7 +14,14 @@ if __name__ == '__main__':
         a_t, p_t = agent.choose([s_t])[0]
         s_t1, r_t1, done, info = env.step(a_t)
 
-        agent.remember_and_learn(s_t, a_t, p_t, r_t1, s_t1, done)
+        agent.remember_and_learn(
+            s_t=s_t,
+            a_t=a_t,
+            p_t=p_t,
+            r_t1=r_t1,
+            s_t1=s_t1,
+            done=done
+        )
 
         if done:
             s_t = env.reset()

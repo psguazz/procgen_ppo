@@ -51,14 +51,14 @@ class Memory:
         self.size = 0
 
     def batches(self):
-        s_ts = tf.convert_to_tensor(self.s_ts)
-        a_ts = tf.convert_to_tensor(self.a_ts)
-        p_ts = tf.convert_to_tensor(self.p_ts)
-        v_ts = tf.convert_to_tensor(self.v_ts)
-        r_t1s = tf.convert_to_tensor(self.r_t1s)
-        s_t1s = tf.convert_to_tensor(self.s_t1s)
-        v_t1s = tf.convert_to_tensor(self.v_t1s)
-        d_t = tf.convert_to_tensor(self.d_t)
+        s_ts = tf.convert_to_tensor(self.s_ts, dtype=tf.float32)
+        a_ts = tf.convert_to_tensor(self.a_ts, dtype=tf.float32)
+        p_ts = tf.convert_to_tensor(self.p_ts, dtype=tf.float32)
+        v_ts = tf.convert_to_tensor(self.v_ts, dtype=tf.float32)
+        r_t1s = tf.convert_to_tensor(self.r_t1s, dtype=tf.float32)
+        s_t1s = tf.convert_to_tensor(self.s_t1s, dtype=tf.float32)
+        v_t1s = tf.convert_to_tensor(self.v_t1s, dtype=tf.float32)
+        d_ts = tf.convert_to_tensor(self.d_ts, dtype=tf.float32)
 
         indices = np.arange(self.size)
         np.random.shuffle(indices)
@@ -69,12 +69,12 @@ class Memory:
             batch = indices[s:s+BATCH_SIZE]
 
             yield Batch(
-                s_ts=s_ts[batch],
-                a_ts=a_ts[batch],
-                p_ts=p_ts[batch],
-                v_ts=v_ts[batch],
-                r_t1s=r_t1s[batch],
-                s_t1s=s_t1s[batch],
-                v_t1s=v_t1s[batch],
-                d_ts=d_t[batch],
+                s_ts=tf.gather(s_ts, batch),
+                a_ts=tf.gather(a_ts, batch),
+                p_ts=tf.gather(p_ts, batch),
+                v_ts=tf.gather(v_ts, batch),
+                r_t1s=tf.gather(r_t1s, batch),
+                s_t1s=tf.gather(s_t1s, batch),
+                v_t1s=tf.gather(v_t1s, batch),
+                d_ts=tf.gather(d_ts, batch),
             )
