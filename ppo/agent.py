@@ -5,11 +5,7 @@ from tensorflow.keras.optimizers import Adam
 from ppo.actor import Actor
 from ppo.critic import Critic
 from ppo.memory import Memory
-
-ALPHA = 0.0003
-GAMMA = 0.99
-CLIP = 0.2
-EPOCHS = 2
+from ppo.config import ALPHA, GAMMA, CLIP, EPOCHS
 
 
 class Agent:

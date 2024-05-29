@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
-
-BATCH_SIZE = 20
+from ppo.config import BATCHES, BATCH_SIZE
 
 
 class Batch:
@@ -24,7 +23,7 @@ class Memory:
         return self.size == 0
 
     def is_full(self):
-        return self.size >= BATCH_SIZE * 5
+        return self.size >= BATCH_SIZE * BATCHES
 
     def remember(self, s_t, a_t, p_t, v_t, r_t1, s_t1, v_t1, d_t):
         self.s_ts.append(s_t)
