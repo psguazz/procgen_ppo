@@ -25,7 +25,7 @@ class Agent:
         self.memory = Memory()
 
     def preprocess(self, states):
-        return tf.convert_to_tensor(states, dtype=tf.float32) / 255.0
+        return tf.convert_to_tensor(states, dtype=tf.float32)
 
     def choose(self, states):
         states = self.preprocess(states)
