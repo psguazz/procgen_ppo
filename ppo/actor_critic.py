@@ -24,4 +24,4 @@ class ActorCritic(keras.Model):
         action = dist.sample()
         log_prob = dist.log_prob(action)
 
-        return action.numpy()[0], value.numpy()[0], log_prob.numpy()[0]
+        return action.numpy()[0], value.numpy()[0][0], log_prob.numpy()[0]

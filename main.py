@@ -17,4 +17,4 @@ if __name__ == '__main__':
         rewards.append(reward)
         avg_reward = sum(rewards) / len(rewards)
 
-        t.set_postfix(reward=reward, average=avg_reward)
+        t.set_postfix(episode=episode, reward=reward, average=avg_reward)
