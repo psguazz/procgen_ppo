@@ -23,18 +23,13 @@ class Agent:
 
         while not self.env.done:
             action, value, log_prob = self.model.choose(state)
-            new_state, reward = self.env.step(action)
+            state, reward = self.env.step(action)
 
             self.episode.store(
-                state=state,
-                action=action,
                 log_prob=log_prob,
                 value=value,
                 reward=reward,
-                new_state=new_state
             )
-
-            state = new_state
 
         self.episode.end()
         return self.episode.total_reward()

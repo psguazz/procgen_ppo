@@ -14,6 +14,8 @@ class Env:
         self.reset()
 
     def step(self, action):
+        action = action.numpy()
+
         self.state, self.reward, term, trunc, _ = self.env.step(action)
         self.done = term or trunc
 

@@ -7,23 +7,17 @@ class Episode:
     def __init__(self):
         opts = {"dtype": tf.float32, "size": 0, "dynamic_size": True}
 
-        self.states = tf.TensorArray(**opts)
-        self.actions = tf.TensorArray(**opts)
         self.log_probs = tf.TensorArray(**opts)
         self.values = tf.TensorArray(**opts)
         self.rewards = tf.TensorArray(**opts)
-        self.new_states = tf.TensorArray(**opts)
 
         self.steps = 0
         self.done = False
 
-    def store(self, state, action, log_prob, value, reward, new_state):
-        self.states = self.states.write(self.steps, state)
-        self.actions = self.actions.write(self.steps, action)
+    def store(self, log_prob, value, reward):
         self.log_probs = self.log_probs.write(self.steps, log_prob)
         self.values = self.values.write(self.steps, value)
         self.rewards = self.rewards.write(self.steps, reward)
-        self.new_states = self.new_states.write(self.steps, new_state)
 
         self.steps += 1
 
@@ -31,12 +25,9 @@ class Episode:
         if self.done:
             return
 
-        self.states = self.states.stack()
-        self.actions = self.actions.stack()
         self.log_probs = self.log_probs.stack()
         self.values = self.values.stack()
         self.rewards = self.rewards.stack()
-        self.new_states = self.new_states.stack()
 
     def expected_returns(self):
         if self.done:

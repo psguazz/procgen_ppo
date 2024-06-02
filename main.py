@@ -11,10 +11,10 @@ if __name__ == '__main__':
     rewards = []
 
     t = tqdm.trange(EPISODES)
-    for episode in range(EPISODES):
+    for _ in t:
         reward = agent.train_new_episode()
 
         rewards.append(reward)
         avg_reward = sum(rewards) / len(rewards)
 
-        t.set_postfix(episode=episode, reward=reward, average=avg_reward)
+        t.set_postfix(reward=reward, average=avg_reward)
