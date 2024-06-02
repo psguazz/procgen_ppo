@@ -38,16 +38,19 @@ class Agent:
         with tf.GradientTape() as tape:
             reward = self.run_new_episode()
 
-            rewards = self.episode.expected_returns()
-            advantages = rewards - self.episode.values
+            rewards = tf.expand_dims(self.episode.expected_returns(), 1)
+            values = tf.expand_dims(self.episode.values, 1)
+            log_probs = tf.expand_dims(self.episode.log_probs, 1)
 
-            actor_loss = -reduce_sum(self.episode.log_probs * advantages)
-            critic_loss = self.huber_loss(self.episode.values, rewards)
+            advantages = rewards - values
+
+            actor_loss = -reduce_sum(log_probs * advantages)
+            critic_loss = self.huber_loss(values, rewards)
 
             loss = actor_loss + critic_loss
 
-        grads = tape.gradient(loss, self.model.trainable_variables)
         params = self.model.trainable_variables
+        grads = tape.gradient(loss, params)
         self.model.optimizer.apply_gradients(zip(grads, params))
 
         return reward

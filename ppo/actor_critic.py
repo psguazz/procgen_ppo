@@ -8,7 +8,7 @@ class ActorCritic(keras.Model):
         super().__init__()
 
         self.common = Dense(128, activation="relu")
-        self.actor = Dense(num_actions, activation="softmax")
+        self.actor = Dense(num_actions)
         self.critic = Dense(1)
 
     def call(self, inputs):
