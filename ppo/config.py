@@ -1,6 +1,6 @@
 import numpy as np
 
-ALPHA = 0.0003
+ALPHA = 0.01
 GAMMA = 0.99
 EPS = np.finfo(np.float32).eps.item()
 

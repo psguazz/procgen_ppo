@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tensorflow_probability as tfp
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Dense
 
@@ -18,10 +17,10 @@ class ActorCritic(keras.Model):
 
     def choose(self, state):
         inputs = tf.convert_to_tensor([state])
-        probs, value = self.call(inputs)
+        logits, value = self.call(inputs)
 
-        dist = tfp.distributions.Categorical(probs)
-        action = dist.sample()
-        log_prob = dist.log_prob(action)
+        action = tf.random.categorical(logits, 1)[0, 0]
+        prob = tf.nn.softmax(logits)[0, action]
+        log_prob = tf.math.log(prob)
 
         return [tf.squeeze(x) for x in [action, value, log_prob]]
