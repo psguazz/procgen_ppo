@@ -11,17 +11,23 @@ class Episode:
         self.values = tf.TensorArray(**opts)
         self.rewards = tf.TensorArray(**opts)
 
+        self.expected_returns = None
+        self.total_reward = 0
+
         self.steps = 0
         self.done = False
 
     def store(self, log_prob, value, reward):
+        if self.done:
+            return
+
         self.log_probs = self.log_probs.write(self.steps, log_prob)
         self.values = self.values.write(self.steps, value)
         self.rewards = self.rewards.write(self.steps, reward)
 
         self.steps += 1
 
-    def end(self):
+    def finalize(self):
         if self.done:
             return
 
@@ -29,7 +35,17 @@ class Episode:
         self.values = self.values.stack()
         self.rewards = self.rewards.stack()
 
-    def expected_returns(self):
+        self.expected_returns = self._compute_expected_returns()
+        self.total_reward = self._compute_total_reward()
+
+        self.log_probs = tf.expand_dims(self.log_probs, 1)
+        self.values = tf.expand_dims(self.values, 1)
+        self.rewards = tf.expand_dims(self.rewards, 1)
+        self.expected_returns = tf.expand_dims(self.expected_returns, 1)
+
+        self.done = True
+
+    def _compute_expected_returns(self):
         if self.done:
             return
 
@@ -47,5 +63,5 @@ class Episode:
 
         return returns
 
-    def total_reward(self):
+    def _compute_total_reward(self):
         return reduce_sum(self.rewards).numpy()

@@ -12,7 +12,8 @@ if __name__ == '__main__':
 
     t = tqdm.trange(EPISODES)
     for _ in t:
-        reward = agent.train_new_episode()
+        episode = agent.train_new_episode()
+        reward = episode.total_reward
 
         rewards.append(reward)
         avg_reward = sum(rewards) / len(rewards)
