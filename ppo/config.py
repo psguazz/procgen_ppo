@@ -4,6 +4,10 @@ ALPHA = 0.01
 GAMMA = 0.99
 EPS = np.finfo(np.float32).eps.item()
 
+EPOCHS = 3
+BATCHES = 4
+BATCH_SIZE = 128
+
 # ALPHA = 0.0003
 # GAMMA = 0.99
 # CLIP = 0.2

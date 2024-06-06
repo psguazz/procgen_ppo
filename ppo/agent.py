@@ -5,7 +5,7 @@ from tensorflow.keras.losses import Reduction
 from ppo.actor_critic import ActorCritic
 from ppo.episode import Episode
 from ppo.training_set import TrainingSet
-from ppo.config import ALPHA
+from ppo.config import ALPHA, EPOCHS
 
 
 class Agent:
@@ -26,6 +26,8 @@ class Agent:
             state, reward = self.env.step(action)
 
             episode.store(
+                state=state,
+                action=action,
                 log_prob=log_prob,
                 value=value,
                 reward=reward,
@@ -38,20 +40,25 @@ class Agent:
     def train_new_episodes(self):
         ts = TrainingSet()
 
-        with tf.GradientTape() as tape:
+        while not ts.full:
             episode = self.run_new_episode()
             ts.add(episode)
 
+        ts.finalize()
+
+        for _ in range(EPOCHS):
             for b in ts.batches():
-                advantages = b.returns - b.values
+                with tf.GradientTape() as tape:
+                    advantages = b.returns - b.values
 
-                actor_loss = -reduce_sum(b.log_probs * advantages)
-                critic_loss = self.huber_loss(b.values, b.returns)
+                    actor_loss = -reduce_sum(b.log_probs * advantages)
+                    critic_loss = self.huber_loss(b.values, b.returns)
 
-                loss = actor_loss + critic_loss
+                    __import__('pdb').set_trace()
+                    loss = actor_loss + critic_loss
 
-        params = self.model.trainable_variables
-        grads = tape.gradient(loss, params)
-        self.model.optimizer.apply_gradients(zip(grads, params))
+                params = self.model.trainable_variables
+                grads = tape.gradient(loss, params)
+                self.model.optimizer.apply_gradients(zip(grads, params))
 
         return ts
