@@ -1,21 +1,19 @@
-import tqdm
 from env import Env
 from ppo.agent import Agent
 
-EPISODES = 20000
+STEPS = 20000
 
 if __name__ == '__main__':
     env = Env()
     agent = Agent(env)
 
     rewards = []
+    steps = 0
+    while steps < STEPS:
+        training_set = agent.train_new_episodes()
 
-    t = tqdm.trange(EPISODES)
-    for _ in t:
-        episode = agent.train_new_episode()
-        reward = episode.total_reward
-
-        rewards.append(reward)
+        steps += training_set.total_steps
+        rewards.append(training_set.total_rewards)
         avg_reward = sum(rewards) / len(rewards)
 
-        t.set_postfix(reward=reward, average=avg_reward)
+        print(f"{steps} steps / {rewards[-1]} latest / {avg_reward} avg")

@@ -4,6 +4,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Reduction
 from ppo.actor_critic import ActorCritic
 from ppo.episode import Episode
+from ppo.training_set import TrainingSet
 from ppo.config import ALPHA
 
 
@@ -34,23 +35,23 @@ class Agent:
 
         return episode
 
-    def train_new_episode(self):
+    def train_new_episodes(self):
+        ts = TrainingSet()
+
         with tf.GradientTape() as tape:
             episode = self.run_new_episode()
+            ts.add(episode)
 
-            expected_returns = episode.expected_returns
-            values = episode.values
-            log_probs = episode.log_probs
+            for b in ts.batches():
+                advantages = b.returns - b.values
 
-            advantages = expected_returns - values
+                actor_loss = -reduce_sum(b.log_probs * advantages)
+                critic_loss = self.huber_loss(b.values, b.returns)
 
-            actor_loss = -reduce_sum(log_probs * advantages)
-            critic_loss = self.huber_loss(values, expected_returns)
-
-            loss = actor_loss + critic_loss
+                loss = actor_loss + critic_loss
 
         params = self.model.trainable_variables
         grads = tape.gradient(loss, params)
         self.model.optimizer.apply_gradients(zip(grads, params))
 
-        return episode
+        return ts
