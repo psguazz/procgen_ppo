@@ -1,11 +1,11 @@
 import tensorflow as tf
-from tensorflow.math import reduce_sum
+from tensorflow.math import reduce_sum, minimum
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Reduction
 from ppo.actor_critic import ActorCritic
 from ppo.episode import Episode
 from ppo.training_set import TrainingSet
-from ppo.config import ALPHA, EPOCHS
+from ppo.config import ALPHA, EPOCHS, CLIP
 
 
 class Agent:
@@ -49,12 +49,18 @@ class Agent:
         for _ in range(EPOCHS):
             for b in ts.batches():
                 with tf.GradientTape() as tape:
+                    log_probs, values = self.model.eval(b.states, b.actions)
+
                     advantages = b.returns - b.values
 
-                    actor_loss = -reduce_sum(b.log_probs * advantages)
-                    critic_loss = self.huber_loss(b.values, b.returns)
+                    ratios = tf.math.exp(log_probs - b.log_probs)
+                    c_ratios = tf.clip_by_value(ratios, 1-CLIP, 1+CLIP)
+                    w_ratios = ratios * advantages
+                    wc_ratios = c_ratios * advantages
 
-                    __import__('pdb').set_trace()
+                    actor_loss = -reduce_sum(minimum(w_ratios, wc_ratios))
+                    critic_loss = self.huber_loss(values, b.returns)
+
                     loss = actor_loss + critic_loss
 
                 params = self.model.trainable_variables

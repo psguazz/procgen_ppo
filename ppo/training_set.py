@@ -6,8 +6,8 @@ from ppo.config import BATCHES, BATCH_SIZE
 
 class Batch:
     def __init__(self, states, actions, returns, values, log_probs):
-        self.states = tf.expand_dims(states, 1)
-        self.actions = tf.expand_dims(actions, 1)
+        self.states = states
+        self.actions = actions
         self.returns = tf.expand_dims(returns, 1)
         self.values = tf.expand_dims(values, 1)
         self.log_probs = tf.expand_dims(log_probs, 1)
@@ -19,7 +19,7 @@ class TrainingSet:
         self.total_steps = 0
         self.total_rewards = 0
 
-        self.states = np.array([])
+        self.states = []
         self.actions = np.array([])
         self.returns = np.array([])
         self.values = np.array([])
@@ -36,7 +36,7 @@ class TrainingSet:
         self.total_steps += episode.steps
         self.total_rewards += episode.total_reward
 
-        self.states = np.concatenate((self.states, episode.states))
+        self.states += episode.states
         self.actions = np.concatenate((self.actions, episode.actions))
         self.returns = np.concatenate((self.returns, episode.returns))
         self.values = np.concatenate((self.values, episode.values))
@@ -49,7 +49,7 @@ class TrainingSet:
             return
 
         self.states = tf.convert_to_tensor(self.states, dtype=tf.float32)
-        self.actions = tf.convert_to_tensor(self.actions, dtype=tf.float32)
+        self.actions = tf.convert_to_tensor(self.actions, dtype=tf.int32)
         self.returns = tf.convert_to_tensor(self.returns, dtype=tf.float32)
         self.values = tf.convert_to_tensor(self.values, dtype=tf.float32)
         self.log_probs = tf.convert_to_tensor(self.log_probs, dtype=tf.float32)

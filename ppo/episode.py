@@ -4,11 +4,11 @@ from ppo.config import GAMMA, EPS
 
 class Episode:
     def __init__(self):
-        self.states = np.array([])
-        self.actions = np.array([])
-        self.log_probs = np.array([])
-        self.values = np.array([])
-        self.rewards = np.array([])
+        self.states = []
+        self.actions = []
+        self.log_probs = []
+        self.values = []
+        self.rewards = []
 
         self.returns = None
 
@@ -21,11 +21,11 @@ class Episode:
         if self.done:
             return
 
-        self.states = np.append(self.states, state)
-        self.actions = np.append(self.actions, action)
-        self.log_probs = np.append(self.log_probs, log_prob)
-        self.values = np.append(self.values, value)
-        self.rewards = np.append(self.rewards, reward)
+        self.states.append(state)
+        self.actions.append(action)
+        self.log_probs.append(log_prob)
+        self.values.append(value)
+        self.rewards.append(reward)
 
         self.total_reward += reward
         self.steps += 1
@@ -33,6 +33,11 @@ class Episode:
     def finalize(self):
         if self.done:
             return
+
+        self.actions = np.array(self.actions)
+        self.log_probs = np.array(self.log_probs)
+        self.values = np.array(self.values)
+        self.rewards = np.array(self.rewards)
 
         self.returns = self._compute_returns()
 
