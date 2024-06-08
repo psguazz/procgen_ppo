@@ -1,7 +1,9 @@
+import os
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
 from tensorflow.keras.initializers import RandomNormal
+from ppo.config import WEIGHTS_PATH
 
 
 class ActorCritic(keras.Model):
@@ -53,6 +55,18 @@ class ActorCritic(keras.Model):
         log_probs = tf.math.log(probs)
 
         return [tf.squeeze(x) for x in [values, log_probs]]
+
+    def save(self, checkpoint):
+        if not os.path.isdir(WEIGHTS_PATH):
+            os.makedirs(WEIGHTS_PATH)
+
+        self.save_weights(WEIGHTS_PATH + checkpoint + ".weights.h5")
+
+    def load(self, checkpoint):
+        try:
+            self.load_weights(WEIGHTS_PATH + checkpoint + ".weights.h5")
+        except FileNotFoundError:
+            print("Weights not found; starting from scratch")
 
     def _preprocess(self, states):
         return tf.convert_to_tensor(states, dtype=tf.float32) / 255.0

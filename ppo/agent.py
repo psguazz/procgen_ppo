@@ -15,6 +15,8 @@ class Agent:
         self.model = ActorCritic(self.env.n_actions)
         self.model.compile(optimizer=Adam(learning_rate=ALPHA))
 
+        self.model.load(self.env.name)
+
         self.huber_loss = tf.keras.losses.Huber(reduction=Reduction.SUM)
 
     def run_new_episode(self):
@@ -66,5 +68,7 @@ class Agent:
                 params = self.model.trainable_variables
                 grads = tape.gradient(loss, params)
                 self.model.optimizer.apply_gradients(zip(grads, params))
+
+        self.model.save(self.env.name)
 
         return ts
