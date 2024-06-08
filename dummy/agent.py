@@ -1,18 +1,29 @@
-import random
+import tensorflow as tf
+from dummy.episode import Episode
 
 
 class Agent:
-    def __init__(self, n_actions, *args):
-        self.n_actions = n_actions
+    def __init__(self, env, **args):
+        self.env = env
+        self.n_actions = env.n_actions
 
-    def choose(self, state):
-        action = random.randint(0, self.n_actions)
-        prob = 1/self.n_actions
+    def run_new_episode(self):
+        episode = Episode()
+        state = self.env.reset()
 
-        return action, prob
+        while not self.env.done:
+            action = tf.random.uniform(
+                (),
+                minval=0,
+                maxval=self.n_actions,
+                dtype=tf.int32
+            )
 
-    def eval(self, state):
-        return 0
+            state, reward = self.env.step(action)
 
-    def remember_and_learn(self, *args):
+            episode.store(reward=reward)
+
+        return episode
+
+    def train(self, *args):
         pass

@@ -3,7 +3,6 @@ from env import Env
 from ppo.agent import Agent as PPOAgent
 from dummy.agent import Agent as DummyAgent
 
-NAME = "procgen:procgen-coinrun-v0"
 STEPS = 20000
 
 AGENTS = {
