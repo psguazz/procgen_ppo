@@ -2,8 +2,8 @@ import gym
 
 
 class Env:
-    def __init__(self):
-        self.name = "procgen:procgen-coinrun-v0"
+    def __init__(self, name, training=False):
+        self.name = name
 
         self.env = gym.make(
             self.name,

@@ -9,15 +9,16 @@ from ppo.config import ALPHA, EPOCHS, CLIP
 
 
 class Agent:
-    def __init__(self, env):
+    def __init__(self, env, training=False):
         self.env = env
 
         self.model = ActorCritic(self.env.n_actions)
         self.model.compile(optimizer=Adam(learning_rate=ALPHA))
 
-        self.model.load(self.env.name)
-
         self.huber_loss = tf.keras.losses.Huber(reduction=Reduction.SUM)
+
+        if not training:
+            self.model.load(self.env.name)
 
     def run_new_episode(self):
         episode = Episode()
@@ -39,7 +40,19 @@ class Agent:
 
         return episode
 
-    def train_new_episodes(self):
+    def train(self, steps):
+        rewards = []
+
+        while steps > 0:
+            ts = self._new_training_set()
+            steps -= ts.total_steps
+            rewards += ts.total_rewards
+
+            self._training_loop(ts)
+
+        return rewards
+
+    def _new_training_set(self):
         ts = TrainingSet()
 
         while not ts.full:
@@ -48,6 +61,9 @@ class Agent:
 
         ts.finalize()
 
+        return ts
+
+    def _training_loop(self, ts):
         for _ in range(EPOCHS):
             for b in ts.batches():
                 with tf.GradientTape() as tape:
@@ -70,5 +86,3 @@ class Agent:
                 self.model.optimizer.apply_gradients(zip(grads, params))
 
         self.model.save(self.env.name)
-
-        return ts
