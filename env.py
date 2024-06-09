@@ -1,4 +1,8 @@
 import gym
+import numpy as np
+
+
+FRAME_STACK = 4
 
 
 class Env:
@@ -8,6 +12,7 @@ class Env:
         self.env = gym.make(
             self.name,
             render_mode="human",
+            use_backgrounds=False,
             distribution_mode="easy"
         )
 
@@ -18,22 +23,27 @@ class Env:
     def step(self, action):
         action = action.numpy()
 
-        self.state, self.reward, term, _ = self.env.step(action)
+        state, reward, term, _ = self.env.step(action)
         self.done = term
         self.steps += 1
 
-        print(f"Step {self.steps} / Action {action} / Reward {self.reward}")
+        self.states = (self.states + [state])[-FRAME_STACK:]
+
+        if reward != 0:
+            print(f"S {self.steps} / A {action} / R {reward}")
 
         if self.done:
             print("Done!")
 
-        return self.state, self.reward
+        return self.states, reward
 
     def reset(self):
-        self.state = self.env.reset()
+        state = self.env.reset()
+
+        self.states = [np.zeros(state.shape)] * (FRAME_STACK-1) + [state]
         self.done = False
         self.steps = 0
 
         print("Resetting environment!")
 
-        return self.state
+        return self.states

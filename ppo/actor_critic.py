@@ -1,7 +1,8 @@
 import os
 import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
+from tensorflow.keras.layers import Dense, Conv3D, Reshape, LSTM
+from tensorflow.keras.layers import Bidirectional as BI, TimeDistributed as TD
 from tensorflow.keras.initializers import RandomNormal
 from ppo.config import WEIGHTS_PATH
 
@@ -13,19 +14,16 @@ class ActorCritic(keras.Model):
         init = RandomNormal(mean=0., stddev=0.1)
 
         self.common_layers = [
-            Conv2D(16, (3, 3), kernel_initializer=init),
-            MaxPooling2D((2, 2)),
-            Conv2D(32, (3, 3), kernel_initializer=init),
-            MaxPooling2D((2, 2)),
-            Conv2D(64, (3, 3), kernel_initializer=init),
-            MaxPooling2D((2, 2)),
-            Flatten(),
-            Dense(64, activation="relu", kernel_initializer=init),
-            Dense(num_actions, kernel_initializer=init)
+            Conv3D(16, (1, 8, 8), strides=(1, 4, 4), kernel_initializer=init),
+            Conv3D(32, (1, 4, 4), strides=(1, 2, 2), kernel_initializer=init),
+            Conv3D(32, (4, 1, 1), strides=(1, 1, 1), kernel_initializer=init),
+            Reshape((4, -1)),
+            TD(Dense(256, activation="relu", kernel_initializer=init)),
+            BI(LSTM(256, kernel_initializer=init))
         ]
 
-        self.actor = Dense(num_actions)
-        self.critic = Dense(1)
+        self.actor = Dense(num_actions, kernel_initializer=init)
+        self.critic = Dense(1, kernel_initializer=init)
 
     def call(self, x):
         for layer in self.common_layers:

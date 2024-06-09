@@ -3,7 +3,7 @@ from env import Env
 from ppo.agent import Agent as PPOAgent
 from dummy.agent import Agent as DummyAgent
 
-STEPS = 20000
+STEPS = 2000000
 
 AGENTS = {
     "ppo": PPOAgent,
@@ -20,7 +20,7 @@ def parse_args():
                         help="Agent to use.")
 
     parser.add_argument("-g", action="store",
-                        choices=["coinrun"],
+                        choices=["coinrun", "starpilot"],
                         default="coinrun",
                         help="Game to run")
 
