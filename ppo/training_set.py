@@ -8,16 +8,16 @@ class Batch:
     def __init__(self, states, actions, returns, values, log_probs):
         self.states = states
         self.actions = actions
-        self.returns = tf.expand_dims(returns, 1)
-        self.values = tf.expand_dims(values, 1)
-        self.log_probs = tf.expand_dims(log_probs, 1)
+        self.returns = returns
+        self.values = values
+        self.log_probs = log_probs
 
 
 class TrainingSet:
     def __init__(self):
         self.episodes = []
         self.total_steps = 0
-        self.total_rewards = 0
+        self.total_rewards = []
 
         self.states = []
         self.actions = np.array([])
@@ -34,7 +34,7 @@ class TrainingSet:
 
         self.episodes.append(episode)
         self.total_steps += episode.steps
-        self.total_rewards += episode.total_reward
+        self.total_rewards += [episode.total_reward]
 
         self.states += episode.states
         self.actions = np.concatenate((self.actions, episode.actions))
