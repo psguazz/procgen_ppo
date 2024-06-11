@@ -84,7 +84,6 @@ class Agent:
                 params = self.model.trainable_variables
                 grads = tape.gradient(loss, params)
 
-                print(grads)
                 self.model.optimizer.apply_gradients(zip(grads, params))
 
         self.model.save(self.env.name)

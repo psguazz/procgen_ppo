@@ -13,7 +13,9 @@ class Env:
             self.name,
             render_mode="human",
             use_backgrounds=False,
-            distribution_mode="easy"
+            distribution_mode="easy",
+            start_level=42,
+            num_levels=1
         )
 
         self.n_actions = self.env.action_space.n
@@ -29,8 +31,7 @@ class Env:
 
         self.states = (self.states + [state])[-FRAME_STACK:]
 
-        if reward != 0:
-            print(f"S {self.steps} / A {action} / R {reward}")
+        print(f"S {self.steps} / A {action} / R {reward}")
 
         if self.done:
             print("Done!")
