@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.math import reduce_mean, reduce_std
 from ppo.config import GAMMA
 
 
@@ -60,4 +61,7 @@ class Episode:
             discounted_sum = reverse_rewards[i] + GAMMA*discounted_sum
             reverse_returns = reverse_returns.write(i, discounted_sum)
 
-        return reverse_returns.stack()[::-1]
+        returns = reverse_returns.stack()[::-1]
+        returns = (returns - reduce_mean(returns)) / reduce_std(returns)
+
+        return returns
