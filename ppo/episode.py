@@ -3,16 +3,17 @@ from tensorflow.math import reduce_mean, reduce_std
 from ppo.config import GAMMA
 
 
-opts = {"dtype": tf.float32, "size": 0, "dynamic_size": True}
+ta_float = {"dtype": tf.float32, "size": 0, "dynamic_size": True}
+ta_int = {"dtype": tf.int64, "size": 0, "dynamic_size": True}
 
 
 class Episode:
     def __init__(self):
-        self.states = tf.TensorArray(**opts)
-        # self.actions = tf.TensorArray(**opts)
-        self.values = tf.TensorArray(**opts)
-        self.log_probs = tf.TensorArray(**opts)
-        self.rewards = tf.TensorArray(**opts)
+        self.states = tf.TensorArray(**ta_float)
+        self.actions = tf.TensorArray(**ta_int)
+        self.values = tf.TensorArray(**ta_float)
+        self.log_probs = tf.TensorArray(**ta_float)
+        self.rewards = tf.TensorArray(**ta_float)
 
         self.returns = None
 
@@ -26,7 +27,7 @@ class Episode:
             return
 
         self.states = self.states.write(self.steps, state)
-        # self.actions = self.actions.write(self.steps, action)
+        self.actions = self.actions.write(self.steps, action)
         self.values = self.values.write(self.steps, value)
         self.log_probs = self.log_probs.write(self.steps, log_prob)
         self.rewards = self.rewards.write(self.steps, reward)
@@ -39,7 +40,7 @@ class Episode:
             return
 
         self.states = self.states.stack()
-        # self.actions = self.actions.stack()
+        self.actions = self.actions.stack()
         self.values = self.values.stack()
         self.log_probs = self.log_probs.stack()
         self.rewards = self.rewards.stack()
@@ -53,7 +54,7 @@ class Episode:
             return
 
         reverse_rewards = self.rewards[::-1]
-        reverse_returns = tf.TensorArray(**opts)
+        reverse_returns = tf.TensorArray(**ta_float)
 
         discounted_sum = 0
 

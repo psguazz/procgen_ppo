@@ -39,6 +39,7 @@ class Agent:
             state = new_state
 
         episode.finalize()
+        print(episode.total_reward)
 
         return episode
 
@@ -46,14 +47,16 @@ class Agent:
         rewards = []
 
         while steps > 0:
+            ep = self.run_new_episode()
+
             with tf.GradientTape() as tape:
-                ep = self.run_new_episode()
-                print(ep.total_reward)
+                values, log_probs = self.model.eval(ep.states, ep.actions)
+
                 rewards += [ep.total_reward]
 
                 returns = tf.expand_dims(ep.returns, 1)
-                values = tf.expand_dims(ep.values, 1)
-                log_probs = tf.expand_dims(ep.log_probs, 1)
+                values = tf.expand_dims(values, 1)
+                log_probs = tf.expand_dims(log_probs, 1)
 
                 advantage = returns - values
                 actor_loss = -tf.math.reduce_sum(log_probs * advantage)
