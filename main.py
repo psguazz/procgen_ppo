@@ -20,8 +20,8 @@ def parse_args():
                         help="Agent to use.")
 
     parser.add_argument("-g", action="store",
-                        choices=["coinrun", "starpilot"],
-                        default="coinrun",
+                        choices=["coinrun", "starpilot", "cart"],
+                        default="cart",
                         help="Game to run")
 
     parser.add_argument("--train",

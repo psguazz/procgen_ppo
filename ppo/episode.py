@@ -1,14 +1,17 @@
-import numpy as np
-from ppo.config import GAMMA, EPS
+import tensorflow as tf
+from ppo.config import GAMMA
+
+
+opts = {"dtype": tf.float32, "size": 0, "dynamic_size": True}
 
 
 class Episode:
     def __init__(self):
-        self.states = []
-        self.actions = []
-        self.log_probs = []
-        self.values = []
-        self.rewards = []
+        self.states = tf.TensorArray(**opts)
+        # self.actions = tf.TensorArray(**opts)
+        self.values = tf.TensorArray(**opts)
+        self.log_probs = tf.TensorArray(**opts)
+        self.rewards = tf.TensorArray(**opts)
 
         self.returns = None
 
@@ -17,15 +20,15 @@ class Episode:
 
         self.done = False
 
-    def store(self, state, action, log_prob, value, reward):
+    def store(self, state, action, value, log_prob, reward):
         if self.done:
             return
 
-        self.states.append(state)
-        self.actions.append(action)
-        self.log_probs.append(log_prob)
-        self.values.append(value)
-        self.rewards.append(reward)
+        self.states = self.states.write(self.steps, state)
+        # self.actions = self.actions.write(self.steps, action)
+        self.values = self.values.write(self.steps, value)
+        self.log_probs = self.log_probs.write(self.steps, log_prob)
+        self.rewards = self.rewards.write(self.steps, reward)
 
         self.total_reward += reward
         self.steps += 1
@@ -34,10 +37,11 @@ class Episode:
         if self.done:
             return
 
-        self.actions = np.array(self.actions)
-        self.log_probs = np.array(self.log_probs)
-        self.values = np.array(self.values)
-        self.rewards = np.array(self.rewards)
+        self.states = self.states.stack()
+        # self.actions = self.actions.stack()
+        self.values = self.values.stack()
+        self.log_probs = self.log_probs.stack()
+        self.rewards = self.rewards.stack()
 
         self.returns = self._compute_returns()
 
@@ -48,15 +52,12 @@ class Episode:
             return
 
         reverse_rewards = self.rewards[::-1]
-        reverse_returns = np.array([])
+        reverse_returns = tf.TensorArray(**opts)
 
         discounted_sum = 0
 
         for i in range(self.steps):
             discounted_sum = reverse_rewards[i] + GAMMA*discounted_sum
-            reverse_returns = np.append(reverse_returns, discounted_sum)
+            reverse_returns = reverse_returns.write(i, discounted_sum)
 
-        returns = reverse_returns[::-1]
-        returns = (returns - np.mean(returns)) / (np.std(returns)+EPS)
-
-        return returns
+        return reverse_returns.stack()[::-1]
