@@ -43,14 +43,14 @@ class ActorCritic(keras.Model):
         inputs = self._preprocess(states)
         logits, values = self.call(inputs)
 
-        indices = tf.range(logits.shape[0])
+        indices = tf.range(logits.shape[0], dtype=tf.int64)
         indices = tf.stack([indices, actions], axis=1)
 
         probs = tf.nn.softmax(logits)
         probs = tf.gather_nd(probs, indices)
         log_probs = tf.math.log(probs)
 
-        return values, log_probs
+        return tf.squeeze(values), log_probs
 
     def save(self, checkpoint):
         if not os.path.isdir(WEIGHTS_PATH):
