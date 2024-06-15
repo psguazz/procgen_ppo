@@ -6,7 +6,6 @@ EPS = np.finfo(np.float32).eps.item()
 CLIP = 0.2
 
 EPOCHS = 3
-BATCHES = 4
-BATCH_SIZE = 128
+TRAINING_EPISODES = 5
 
 WEIGHTS_PATH = "/Users/psg/master_ai/autonomous/project/ppo/weights/"

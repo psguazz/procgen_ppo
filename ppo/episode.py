@@ -1,10 +1,27 @@
 import tensorflow as tf
 from tensorflow.math import reduce_mean, reduce_std
-from ppo.config import GAMMA
+from ppo.config import GAMMA, TRAINING_EPISODES
 
 
 ta_float = {"dtype": tf.float32, "size": 0, "dynamic_size": True}
 ta_int = {"dtype": tf.int64, "size": 0, "dynamic_size": True}
+
+
+class TrainingSet:
+    def __init__(self):
+        self.total_steps = 0
+        self.total_rewards = []
+        self.episodes = []
+        self.full = False
+
+    def add(self, episode):
+        if not episode.done:
+            return
+
+        self.episodes.append(episode)
+        self.total_steps += episode.steps
+        self.total_rewards.append(episode.total_reward)
+        self.full = self.total_steps > TRAINING_EPISODES
 
 
 class Episode:

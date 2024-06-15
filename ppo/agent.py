@@ -3,8 +3,7 @@ from tensorflow.math import reduce_mean, minimum
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber, Reduction
 from ppo.cart_nn import ActorCritic
-from ppo.episode import Episode
-from ppo.training_set import TrainingSet
+from ppo.episode import Episode, TrainingSet
 from ppo.config import ALPHA, EPOCHS, CLIP
 
 
@@ -47,41 +46,13 @@ class Agent:
         rewards = []
 
         while steps > 0:
-            ep = self.run_new_episode()
+            ts = self._new_training_set()
+            steps -= ts.total_steps
+            rewards += ts.total_rewards
 
-            with tf.GradientTape() as tape:
-                values, log_probs = self.model.eval(ep.states, ep.actions)
-
-                rewards += [ep.total_reward]
-
-                returns = tf.expand_dims(ep.returns, 1)
-                values = tf.expand_dims(values, 1)
-                log_probs = tf.expand_dims(log_probs, 1)
-
-                advantage = returns - values
-                actor_loss = -tf.math.reduce_sum(log_probs * advantage)
-
-                critic_loss = self.huber_loss(values, returns)
-
-                loss = actor_loss + critic_loss
-
-            params = self.model.trainable_variables
-            grads = tape.gradient(loss, params)
-            self.model.optimizer.apply_gradients(zip(grads, params))
+            self._training_loop(ts)
 
         return rewards
-
-    # def train(self, steps):
-        # rewards = []
-        #
-        # while steps > 0:
-        #     ts = self._new_training_set()
-        #     steps -= ts.total_steps
-        #     rewards += ts.total_rewards
-        #
-        #     self._training_loop(ts)
-        #
-        # return rewards
 
     def _new_training_set(self):
         ts = TrainingSet()
@@ -91,36 +62,27 @@ class Agent:
             print(episode.total_reward)
             ts.add(episode)
 
-        ts.finalize()
-
         return ts
 
     def _training_loop(self, ts):
         for _ in range(EPOCHS):
-            for b in ts.batches():
+            for b in ts.episodes:
                 with tf.GradientTape() as tape:
                     values, log_probs = self.model.eval(b.states, b.actions)
 
-                    __import__('pdb').set_trace()
-                    assert b.returns.shape == values.shape
-                    assert b.log_probs.shape == log_probs.shape
+                    returns = tf.expand_dims(b.returns, 1)
+                    values = tf.expand_dims(values, 1)
+                    log_probs = tf.expand_dims(log_probs, 1)
 
-                    print(b.log_probs.shape, values.shape, b.returns.shape)
-                    advantages = b.returns - values
+                    advantage = returns - values
+                    actor_loss = -tf.math.reduce_sum(log_probs * advantage)
 
-                    ratios = tf.math.exp(log_probs - b.log_probs)
-                    c_ratios = tf.clip_by_value(ratios, 1-CLIP, 1+CLIP)
-                    w_ratios = ratios * advantages
-                    wc_ratios = c_ratios * advantages
-
-                    actor_loss = reduce_mean(-minimum(w_ratios, wc_ratios))
-                    critic_loss = MSE(values, b.returns)
+                    critic_loss = self.huber_loss(values, returns)
 
                     loss = actor_loss + critic_loss
 
                 params = self.model.trainable_variables
                 grads = tape.gradient(loss, params)
-
                 self.model.optimizer.apply_gradients(zip(grads, params))
 
         self.model.save(self.env.name)
