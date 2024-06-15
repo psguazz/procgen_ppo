@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.math import reduce_mean, minimum
+from tensorflow.math import exp, reduce_mean, minimum
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber, Reduction
 from ppo.cart_nn import ActorCritic
@@ -81,8 +81,13 @@ class Agent:
                     assert log_probs.shape == (BATCH_SIZE, 1)
 
                     advantage = b.returns - values
-                    actor_loss = -tf.math.reduce_sum(log_probs * advantage)
 
+                    ratios = exp(log_probs - b.log_probs)
+                    c_ratios = tf.clip_by_value(ratios, 1-CLIP, 1+CLIP)
+                    w_ratios = advantage * ratios
+                    wc_ratios = advantage * c_ratios
+
+                    actor_loss = reduce_mean(-minimum(w_ratios, wc_ratios))
                     critic_loss = self.huber_loss(values, b.returns)
 
                     loss = actor_loss + critic_loss
