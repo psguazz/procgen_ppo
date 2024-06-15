@@ -50,7 +50,7 @@ class ActorCritic(keras.Model):
         probs = tf.gather_nd(probs, indices)
         log_probs = tf.math.log(probs)
 
-        return tf.squeeze(values), log_probs
+        return values, tf.expand_dims(log_probs, 1)
 
     def save(self, checkpoint):
         if not os.path.isdir(WEIGHTS_PATH):

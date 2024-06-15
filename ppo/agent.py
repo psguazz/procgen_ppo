@@ -5,7 +5,7 @@ from tensorflow.keras.losses import Huber, Reduction
 from ppo.cart_nn import ActorCritic
 from ppo.episode import Episode
 from ppo.training_set import TrainingSet
-from ppo.config import ALPHA, EPOCHS, CLIP
+from ppo.config import ALPHA, EPOCHS, CLIP, BATCH_SIZE
 
 
 class Agent:
@@ -71,14 +71,19 @@ class Agent:
                 with tf.GradientTape() as tape:
                     values, log_probs = self.model.eval(b.states, b.actions)
 
-                    returns = tf.expand_dims(b.returns, 1)
-                    values = tf.expand_dims(values, 1)
-                    log_probs = tf.expand_dims(log_probs, 1)
+                    assert b.states.shape == (BATCH_SIZE, 4)
+                    assert b.actions.shape == (BATCH_SIZE,)
 
-                    advantage = returns - values
+                    assert b.returns.shape == (BATCH_SIZE, 1)
+                    assert b.values.shape == (BATCH_SIZE, 1)
+                    assert b.log_probs.shape == (BATCH_SIZE, 1)
+                    assert values.shape == (BATCH_SIZE, 1)
+                    assert log_probs.shape == (BATCH_SIZE, 1)
+
+                    advantage = b.returns - values
                     actor_loss = -tf.math.reduce_sum(log_probs * advantage)
 
-                    critic_loss = self.huber_loss(values, returns)
+                    critic_loss = self.huber_loss(values, b.returns)
 
                     loss = actor_loss + critic_loss
 

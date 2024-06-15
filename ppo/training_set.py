@@ -7,9 +7,10 @@ class Batch:
     def __init__(self, states, actions, values, log_probs, returns):
         self.states = states
         self.actions = actions
-        self.values = values
-        self.log_probs = log_probs
-        self.returns = returns
+
+        self.values = tf.expand_dims(values, 1)
+        self.log_probs = tf.expand_dims(log_probs, 1)
+        self.returns = tf.expand_dims(returns, 1)
 
 
 class TrainingSet:
