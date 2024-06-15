@@ -3,7 +3,8 @@ from tensorflow.math import reduce_mean, minimum
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber, Reduction
 from ppo.cart_nn import ActorCritic
-from ppo.episode import Episode, TrainingSet
+from ppo.episode import Episode
+from ppo.training_set import TrainingSet
 from ppo.config import ALPHA, EPOCHS, CLIP
 
 
@@ -66,7 +67,7 @@ class Agent:
 
     def _training_loop(self, ts):
         for _ in range(EPOCHS):
-            for b in ts.episodes:
+            for b in ts.batches():
                 with tf.GradientTape() as tape:
                     values, log_probs = self.model.eval(b.states, b.actions)
 
