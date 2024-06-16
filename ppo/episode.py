@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.math import reduce_mean, reduce_std
-from ppo.config import GAMMA, LAMBDA
+from ppo.config import GAMMA, LAMBDA, EPS
 
 
 ta_float = {"dtype": tf.float32, "size": 0, "dynamic_size": True}
@@ -90,4 +90,4 @@ class Episode:
         return advantages
 
     def _normalize(self, tensor):
-        return (tensor - reduce_mean(tensor)) / reduce_std(tensor)
+        return (tensor - reduce_mean(tensor)) / (reduce_std(tensor)+EPS)
