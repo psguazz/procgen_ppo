@@ -60,7 +60,6 @@ class Agent:
 
         while not ts.full:
             episode = self.run_new_episode()
-            print(episode.total_reward)
             ts.add(episode)
 
         ts.finalize()

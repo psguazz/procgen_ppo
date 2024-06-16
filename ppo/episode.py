@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.math import reduce_mean, reduce_std
-from ppo.config import GAMMA
+from ppo.config import GAMMA, LAMBDA
 
 
 ta_float = {"dtype": tf.float32, "size": 0, "dynamic_size": True}
@@ -65,9 +65,29 @@ class Episode:
             reverse_returns = reverse_returns.write(i, discounted_sum)
 
         returns = reverse_returns.stack()[::-1]
-        returns = (returns - reduce_mean(returns)) / reduce_std(returns)
+        returns = self._normalize(returns)
 
         return returns
 
     def _compute_advantages(self):
-        return self.returns - self.values
+        if self.done:
+            return
+
+        next_values = tf.concat((self.values[1:], [0]), 0)
+        deltas = self.rewards + GAMMA*next_values - self.values
+        reverse_deltas = deltas[::-1]
+
+        gae = 0
+        reverse_advantages = tf.TensorArray(**ta_float)
+
+        for i in range(self.steps):
+            gae = reverse_deltas[i] + GAMMA*LAMBDA*gae
+            reverse_advantages = reverse_advantages.write(i, gae)
+
+        advantages = reverse_advantages.stack()[::-1]
+        advantages = self._normalize(advantages)
+
+        return advantages
+
+    def _normalize(self, tensor):
+        return (tensor - reduce_mean(tensor)) / reduce_std(tensor)

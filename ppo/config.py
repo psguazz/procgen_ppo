@@ -1,8 +1,10 @@
 import numpy as np
 
+EPS = np.finfo(np.float32).eps.item()
+
 ALPHA = 0.003
 GAMMA = 0.99
-EPS = np.finfo(np.float32).eps.item()
+LAMBDA = 0.95
 CLIP = 0.2
 
 EPOCHS = 1
