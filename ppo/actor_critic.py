@@ -39,20 +39,20 @@ class ActorCritic(keras.Model):
         prob = tf.nn.softmax(logits)[0, action]
         log_prob = tf.math.log(prob)
 
-        return [tf.squeeze(x) for x in [action, value, log_prob]]
+        return action, tf.squeeze(value), log_prob
 
     def eval(self, states, actions):
         inputs = self._preprocess(states)
         logits, values = self.call(inputs)
 
-        indices = tf.range(logits.shape[0])
+        indices = tf.range(logits.shape[0], dtype=tf.int64)
         indices = tf.stack([indices, actions], axis=1)
 
         probs = tf.nn.softmax(logits)
         probs = tf.gather_nd(probs, indices)
         log_probs = tf.math.log(probs)
 
-        return [tf.squeeze(x) for x in [values, log_probs]]
+        return values, tf.expand_dims(log_probs, 1)
 
     def save(self, checkpoint):
         if not os.path.isdir(WEIGHTS_PATH):

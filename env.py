@@ -8,11 +8,14 @@ FRAME_STACK = 4
 class Env:
     def __init__(self, name, training=False):
         self.name = name
-        self.name = "CartPole-v1"
 
         self.env = gym.make(
             self.name,
-            # render_mode="human",
+            render_mode="human",
+            use_backgrounds=False,
+            distribution_mode="easy",
+            start_level=42,
+            num_levels=1
         )
 
         self.n_actions = self.env.action_space.n
@@ -22,19 +25,19 @@ class Env:
     def step(self, action):
         action = action.numpy()
 
-        state, reward, term, trunc, _ = self.env.step(action)
-        self.done = term or trunc
+        state, reward, term, _ = self.env.step(action)
+        self.done = term
         self.steps += 1
 
         self.states = (self.states + [state])[-FRAME_STACK:]
 
-        return state, reward
+        return self.states, reward
 
     def reset(self):
-        state, _ = self.env.reset()
+        state = self.env.reset()
 
         self.states = [np.zeros(state.shape)] * (FRAME_STACK-1) + [state]
         self.done = False
         self.steps = 0
 
-        return state
+        return self.states

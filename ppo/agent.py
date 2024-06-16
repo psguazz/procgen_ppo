@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.math import exp, reduce_mean, minimum
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber, Reduction
-from ppo.cart_nn import ActorCritic
+from ppo.actor_critic import ActorCritic
 from ppo.episode import Episode
 from ppo.training_set import TrainingSet
 from ppo.config import ALPHA, EPOCHS, CLIP, BATCH_SIZE
@@ -72,7 +72,7 @@ class Agent:
                 with tf.GradientTape() as tape:
                     values, log_probs = self.model.eval(b.states, b.actions)
 
-                    assert b.states.shape == (BATCH_SIZE, 4)
+                    assert b.states.shape == (BATCH_SIZE, 4, 64, 64, 3)
                     assert b.actions.shape == (BATCH_SIZE,)
 
                     assert b.returns.shape == (BATCH_SIZE, 1)
