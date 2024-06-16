@@ -16,6 +16,7 @@ class Episode:
         self.rewards = tf.TensorArray(**ta_float)
 
         self.returns = None
+        self.advantage = None
 
         self.total_reward = 0
         self.steps = 0
@@ -46,6 +47,7 @@ class Episode:
         self.rewards = self.rewards.stack()
 
         self.returns = self._compute_returns()
+        self.advantage = self._compute_advantage()
 
         self.done = True
 
@@ -66,3 +68,6 @@ class Episode:
         returns = (returns - reduce_mean(returns)) / reduce_std(returns)
 
         return returns
+
+    def _compute_advantage(self):
+        return self.returns - self.values

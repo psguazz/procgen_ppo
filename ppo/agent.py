@@ -77,15 +77,14 @@ class Agent:
                     assert b.returns.shape == (BATCH_SIZE, 1)
                     assert b.values.shape == (BATCH_SIZE, 1)
                     assert b.log_probs.shape == (BATCH_SIZE, 1)
+                    assert b.advantage.shape == (BATCH_SIZE, 1)
                     assert values.shape == (BATCH_SIZE, 1)
                     assert log_probs.shape == (BATCH_SIZE, 1)
 
-                    advantage = b.returns - values
-
                     ratios = exp(log_probs - b.log_probs)
                     c_ratios = tf.clip_by_value(ratios, 1-CLIP, 1+CLIP)
-                    w_ratios = advantage * ratios
-                    wc_ratios = advantage * c_ratios
+                    w_ratios = b.advantage * ratios
+                    wc_ratios = b.advantage * c_ratios
 
                     actor_loss = reduce_mean(-minimum(w_ratios, wc_ratios))
                     critic_loss = self.huber_loss(values, b.returns)

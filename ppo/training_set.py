@@ -4,13 +4,14 @@ from ppo.config import BATCHES, BATCH_SIZE
 
 
 class Batch:
-    def __init__(self, states, actions, values, log_probs, returns):
+    def __init__(self, states, actions, values, log_probs, returns, advantage):
         self.states = states
         self.actions = actions
 
         self.values = tf.expand_dims(values, 1)
         self.log_probs = tf.expand_dims(log_probs, 1)
         self.returns = tf.expand_dims(returns, 1)
+        self.advantage = tf.expand_dims(advantage, 1)
 
 
 class TrainingSet:
@@ -26,6 +27,7 @@ class TrainingSet:
         self.values = None
         self.log_probs = None
         self.returns = None
+        self.advantage = None
 
     def add(self, episode):
         if not episode.done:
@@ -37,12 +39,14 @@ class TrainingSet:
             self.values = episode.values
             self.log_probs = episode.log_probs
             self.returns = episode.returns
+            self.advantage = episode.advantage
         else:
             self.states = tf.concat((self.states, episode.states), 0)
             self.actions = tf.concat((self.actions, episode.actions), 0)
             self.values = tf.concat((self.values, episode.values), 0)
             self.log_probs = tf.concat((self.log_probs, episode.log_probs), 0)
             self.returns = tf.concat((self.returns, episode.returns), 0)
+            self.advantage = tf.concat((self.advantage, episode.advantage), 0)
 
         self.episodes.append(episode)
         self.total_steps += episode.steps
@@ -69,4 +73,5 @@ class TrainingSet:
                 values=tf.gather(self.values, batch),
                 log_probs=tf.gather(self.log_probs, batch),
                 returns=tf.gather(self.returns, batch),
+                advantage=tf.gather(self.advantage, batch),
             )
