@@ -38,6 +38,7 @@ class TrainingSet:
         self.total_steps += episode.steps
         self.total_rewards.append(episode.total_reward)
 
+        print(f"{self.total_steps}/{BATCHES * BATCH_SIZE}")
         self.full = self.total_steps > BATCHES * BATCH_SIZE
 
     def finalize(self):

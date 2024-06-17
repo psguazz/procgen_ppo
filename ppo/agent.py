@@ -9,7 +9,7 @@ from ppo.config import ALPHA, EPOCHS, CLIP, BATCH_SIZE
 
 
 class Agent:
-    def __init__(self, env, training=False):
+    def __init__(self, env, reset=False):
         self.env = env
 
         self.model = ActorCritic(self.env.n_actions)
@@ -17,7 +17,7 @@ class Agent:
 
         self.huber_loss = Huber(reduction=Reduction.SUM)
 
-        if not training:
+        if not reset:
             self.model.load(self.env.name)
 
     def run_new_episode(self):
@@ -67,7 +67,11 @@ class Agent:
         return ts
 
     def _training_loop(self, ts):
-        for _ in range(EPOCHS):
+        print(f"Training on {len(ts.episodes)} episodes...")
+
+        for e in range(EPOCHS):
+            print(f"{e}/{EPOCHS}")
+
             for b in ts.batches():
                 with tf.GradientTape() as tape:
                     values, log_probs = self.model.eval(b.states, b.actions)

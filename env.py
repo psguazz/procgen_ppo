@@ -15,7 +15,7 @@ class Env:
             use_backgrounds=False,
             distribution_mode="easy",
             start_level=42,
-            num_levels=1
+            num_levels=100
         )
 
         self.n_actions = self.env.action_space.n

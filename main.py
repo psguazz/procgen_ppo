@@ -1,3 +1,4 @@
+import tensorflow.keras as keras
 from argparse import ArgumentParser, BooleanOptionalAction
 from env import Env
 from ppo.agent import Agent as PPOAgent
@@ -9,6 +10,10 @@ AGENTS = {
     "ppo": PPOAgent,
     "dummy": DummyAgent,
 }
+
+
+SEED = 42
+keras.utils.set_random_seed(SEED)
 
 
 def parse_args():
@@ -27,7 +32,12 @@ def parse_args():
     parser.add_argument("--train",
                         action=BooleanOptionalAction,
                         default=False,
-                        help="Whether to start training from scratch")
+                        help="If true, the agent will learn from the episodes")
+
+    parser.add_argument("--reset",
+                        action=BooleanOptionalAction,
+                        default=False,
+                        help="If true and training, the agent will start over")
 
     return parser.parse_args()
 
@@ -36,13 +46,14 @@ def clean_args(args):
     agent = AGENTS[args.a]
     game = f"procgen:procgen-{args.g}-v0"
     training = args.train
+    reset = args.reset
 
-    return agent, game, training
+    return agent, game, training, reset
 
 
-def train(Agent, game):
+def train(Agent, game, reset):
     env = Env(game, training=True)
-    agent = Agent(env, training=True)
+    agent = Agent(env, reset=reset)
     rewards = agent.train(STEPS)
 
     return rewards
@@ -63,9 +74,9 @@ def eval(Agent, game):
 
 if __name__ == '__main__':
     args = parse_args()
-    Agent, game, training = clean_args(args)
+    Agent, game, training, reset = clean_args(args)
 
     if training:
-        train(Agent, game)
+        train(Agent, game, reset)
     else:
         eval(Agent, game)

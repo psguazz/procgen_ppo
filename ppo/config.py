@@ -7,8 +7,8 @@ GAMMA = 0.99
 LAMBDA = 0.95
 CLIP = 0.2
 
-EPOCHS = 1
-BATCHES = 4
+EPOCHS = 4
+BATCHES = 8
 BATCH_SIZE = 128
 
 WEIGHTS_PATH = "/Users/psg/master_ai/autonomous/project/ppo/weights/"
