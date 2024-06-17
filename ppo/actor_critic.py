@@ -1,25 +1,93 @@
 import os
 import tensorflow as tf
-import tensorflow.keras as keras
-from tensorflow.keras.layers import Dense, Conv3D, Reshape, LSTM
-from tensorflow.keras.layers import Bidirectional as BI, TimeDistributed as TD
+from tensorflow.keras import layers, ops, Model
+from tensorflow.keras.layers import Dense, Conv3D, Reshape, Embedding, Flatten
+from tensorflow.keras.layers import MultiHeadAttention, LayerNormalization
 from tensorflow.keras.initializers import RandomNormal
 from ppo.config import WEIGHTS_PATH
 
+HEADS = 8
+LAYERS = 8
+TUBELET_SHAPE = (4, 8, 8)
+EMBED_DIM = 128
 
-class ActorCritic(keras.Model):
+init = RandomNormal(mean=0., stddev=0.1)
+init = None
+
+
+class TubeletEmbedding(layers.Layer):
+    def __init__(self):
+        super().__init__()
+
+        self.layers = [
+            Conv3D(
+                filters=EMBED_DIM,
+                kernel_size=TUBELET_SHAPE,
+                strides=TUBELET_SHAPE,
+                padding="VALID",
+                kernel_initializer=init
+            ),
+
+            Reshape(target_shape=(-1, EMBED_DIM))
+        ]
+
+    def call(self, x):
+        for layer in self.layers:
+            x = layer(x)
+
+        return x
+
+
+class PositionalEmbedding(layers.Layer):
+    def build(self, input_shape):
+        _, num_tokens, _ = input_shape
+
+        self.positions = ops.arange(0, num_tokens, 1)
+        self.position_embedding = Embedding(
+            input_dim=num_tokens,
+            output_dim=EMBED_DIM
+        )
+
+    def call(self, x):
+        encoded_positions = self.position_embedding(self.positions)
+
+        return x + encoded_positions
+
+
+class TransformerEncoder(layers.Layer):
+    def __init__(self):
+        super().__init__()
+
+        self.attention = MultiHeadAttention(num_heads=HEADS, key_dim=EMBED_DIM)
+
+        self.layers = [
+            LayerNormalization(epsilon=1e-6),
+            Dense(512, activation="relu", kernel_initializer=init),
+            Dense(EMBED_DIM, kernel_initializer=init),
+            LayerNormalization(epsilon=1e-6),
+        ]
+
+    def call(self, x):
+        x = x + self.attention(x, x)
+
+        for layer in self.layers:
+            x = layer(x)
+
+        return x
+
+
+class ActorCritic(Model):
     def __init__(self, num_actions):
         super().__init__()
 
-        init = RandomNormal(mean=0., stddev=0.1)
-
         self.common_layers = [
-            Conv3D(16, (1, 8, 8), strides=(1, 4, 4), kernel_initializer=init),
-            Conv3D(32, (1, 4, 4), strides=(1, 2, 2), kernel_initializer=init),
-            Conv3D(32, (4, 1, 1), strides=(1, 1, 1), kernel_initializer=init),
-            Reshape((4, -1)),
-            TD(Dense(256, activation="relu", kernel_initializer=init)),
-            BI(LSTM(256, kernel_initializer=init))
+            TubeletEmbedding(),
+            PositionalEmbedding(),
+        ] + [
+            TransformerEncoder() for _ in range(LAYERS)
+        ] + [
+            Flatten(),
+            Dense(256, activation="relu", kernel_initializer=init)
         ]
 
         self.actor = Dense(num_actions, kernel_initializer=init)
