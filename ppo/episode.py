@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow.math import reduce_mean, reduce_std
 from ppo.config import GAMMA, LAMBDA

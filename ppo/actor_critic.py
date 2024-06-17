@@ -1,11 +1,10 @@
 import os
 import tensorflow as tf
 from tensorflow.keras import layers, ops, Model
-from tensorflow.keras.layers import Dense, Conv3D, Reshape, Embedding, Flatten
 from tensorflow.keras.layers import MultiHeadAttention, LayerNormalization
-from tensorflow.keras.initializers import RandomNormal
+from tensorflow.keras.layers import Dense, Conv3D, Embedding
+from tensorflow.keras.layers import Reshape, Flatten
 
-WEIGHTS_PATH = "/Users/psg/master_ai/autonomous/project/ppo/weights/"
 
 HEADS = 4
 LAYERS = 4
@@ -13,17 +12,13 @@ TUBELET_SHAPE = (4, 8, 8)
 EMBED_DIM = 128
 DENSE_DIM = 256
 
-init = RandomNormal(mean=0., stddev=0.1)
-init = None
+WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), "weights")
 
 
 def weights_path(checkpoint):
-    dir = os.path.dirname(__file__)
-    dir = os.path.join(dir, "weights")
-
     filename = checkpoint.replace(":", "_") + ".weights.h5"
 
-    return os.path.join(dir, filename)
+    return os.path.join(WEIGHTS_PATH, filename)
 
 
 class TubeletEmbedding(layers.Layer):
@@ -36,7 +31,6 @@ class TubeletEmbedding(layers.Layer):
                 kernel_size=TUBELET_SHAPE,
                 strides=TUBELET_SHAPE,
                 padding="VALID",
-                kernel_initializer=init
             ),
 
             Reshape(target_shape=(-1, EMBED_DIM))
@@ -73,8 +67,8 @@ class TransformerEncoder(layers.Layer):
 
         self.layers = [
             LayerNormalization(epsilon=1e-6),
-            Dense(DENSE_DIM, activation="relu", kernel_initializer=init),
-            Dense(EMBED_DIM, kernel_initializer=init),
+            Dense(DENSE_DIM, activation="relu"),
+            Dense(EMBED_DIM),
             LayerNormalization(epsilon=1e-6),
         ]
 
@@ -98,11 +92,11 @@ class ActorCritic(Model):
             TransformerEncoder() for _ in range(LAYERS)
         ] + [
             Flatten(),
-            Dense(DENSE_DIM, activation="relu", kernel_initializer=init)
+            Dense(DENSE_DIM, activation="relu")
         ]
 
-        self.actor = Dense(num_actions, kernel_initializer=init)
-        self.critic = Dense(1, kernel_initializer=init)
+        self.actor = Dense(num_actions)
+        self.critic = Dense(1)
 
     def call(self, x):
         for layer in self.common_layers:
