@@ -4,7 +4,8 @@ from env import Env
 from ppo.agent import Agent as PPOAgent
 from dummy.agent import Agent as DummyAgent
 
-STEPS = 50000
+TRAINING_STEPS = 50000
+EVAL_STEPS = 25000
 
 AGENTS = {
     "ppo": PPOAgent,
@@ -54,7 +55,7 @@ def clean_args(args):
 def train(Agent, game, reset):
     env = Env(game, training=True)
     agent = Agent(env, reset=reset)
-    rewards = agent.train(STEPS)
+    rewards = agent.train(TRAINING_STEPS)
 
     return rewards
 
@@ -64,9 +65,11 @@ def eval(Agent, game):
     agent = Agent(env)
 
     cum_rewards = [0]
+    steps = 0
 
-    for _ in range(500):
+    while steps < EVAL_STEPS:
         ep = agent.run_new_episode()
+        steps += ep.steps
         cum_rewards.append(cum_rewards[-1] + ep.total_reward)
 
     return cum_rewards[1:]

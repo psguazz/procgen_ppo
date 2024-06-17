@@ -23,6 +23,8 @@ class Agent:
 
             episode.store(reward=reward)
 
+        print(f"{episode.total_reward} ({episode.steps})")
+
         return episode
 
     def train(self, *args):

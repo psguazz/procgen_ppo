@@ -39,7 +39,7 @@ class Agent:
             state = new_state
 
         episode.finalize()
-        print(episode.total_reward)
+        print(f"{episode.total_reward} ({episode.steps})")
 
         return episode
 
