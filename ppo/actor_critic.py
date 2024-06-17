@@ -4,15 +4,26 @@ from tensorflow.keras import layers, ops, Model
 from tensorflow.keras.layers import Dense, Conv3D, Reshape, Embedding, Flatten
 from tensorflow.keras.layers import MultiHeadAttention, LayerNormalization
 from tensorflow.keras.initializers import RandomNormal
-from ppo.config import WEIGHTS_PATH
 
-HEADS = 8
-LAYERS = 8
+WEIGHTS_PATH = "/Users/psg/master_ai/autonomous/project/ppo/weights/"
+
+HEADS = 4
+LAYERS = 4
 TUBELET_SHAPE = (4, 8, 8)
 EMBED_DIM = 128
+DENSE_DIM = 256
 
 init = RandomNormal(mean=0., stddev=0.1)
 init = None
+
+
+def weights_path(checkpoint):
+    dir = os.path.dirname(__file__)
+    dir = os.path.join(dir, "weights")
+
+    filename = checkpoint.replace(":", "_") + ".weights.h5"
+
+    return os.path.join(dir, filename)
 
 
 class TubeletEmbedding(layers.Layer):
@@ -62,7 +73,7 @@ class TransformerEncoder(layers.Layer):
 
         self.layers = [
             LayerNormalization(epsilon=1e-6),
-            Dense(512, activation="relu", kernel_initializer=init),
+            Dense(DENSE_DIM, activation="relu", kernel_initializer=init),
             Dense(EMBED_DIM, kernel_initializer=init),
             LayerNormalization(epsilon=1e-6),
         ]
@@ -87,7 +98,7 @@ class ActorCritic(Model):
             TransformerEncoder() for _ in range(LAYERS)
         ] + [
             Flatten(),
-            Dense(256, activation="relu", kernel_initializer=init)
+            Dense(DENSE_DIM, activation="relu", kernel_initializer=init)
         ]
 
         self.actor = Dense(num_actions, kernel_initializer=init)
@@ -126,11 +137,13 @@ class ActorCritic(Model):
         if not os.path.isdir(WEIGHTS_PATH):
             os.makedirs(WEIGHTS_PATH)
 
-        self.save_weights(WEIGHTS_PATH + checkpoint + ".weights.h5")
+        path = weights_path(checkpoint)
+        self.save_weights(path)
 
     def load(self, checkpoint):
         try:
-            self.load_weights(WEIGHTS_PATH + checkpoint + ".weights.h5")
+            path = weights_path(checkpoint)
+            self.load_weights(path)
         except FileNotFoundError:
             print("Weights not found; starting from scratch")
 

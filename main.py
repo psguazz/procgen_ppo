@@ -27,7 +27,7 @@ def parse_args():
 
     parser.add_argument("-g", action="store",
                         choices=["coinrun", "starpilot"],
-                        default="starpilot",
+                        default="coinrun",
                         help="Game to run")
 
     parser.add_argument("--train",

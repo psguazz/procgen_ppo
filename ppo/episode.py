@@ -1,7 +1,8 @@
 import tensorflow as tf
 from tensorflow.math import reduce_mean, reduce_std
-from ppo.config import GAMMA, LAMBDA, EPS
+from ppo.config import GAMMA, LAMBDA
 
+EPS = np.finfo(np.float32).eps.item()
 
 ta_float = {"dtype": tf.float32, "size": 0, "dynamic_size": True}
 ta_int = {"dtype": tf.int64, "size": 0, "dynamic_size": True}
