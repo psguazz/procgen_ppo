@@ -9,13 +9,15 @@ class Env:
     def __init__(self, name, training=False):
         self.name = name
 
+        levels = 100 if training else 500
+
         self.env = gym.make(
             self.name,
             render_mode="human",
             use_backgrounds=False,
             distribution_mode="easy",
             start_level=42,
-            num_levels=100
+            num_levels=levels
         )
 
         self.n_actions = self.env.action_space.n

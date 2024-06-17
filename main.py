@@ -4,7 +4,7 @@ from env import Env
 from ppo.agent import Agent as PPOAgent
 from dummy.agent import Agent as DummyAgent
 
-STEPS = 2000000
+STEPS = 50000
 
 AGENTS = {
     "ppo": PPOAgent,
