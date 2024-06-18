@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.math import exp, reduce_mean, minimum
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber, Reduction
-from ppo.actor_critic import ActorCritic
+from ppo.models.convnet import ActorCritic
 from ppo.episode import Episode
 from ppo.training_set import TrainingSet
 from ppo.config import ALPHA, EPOCHS, CLIP, BATCH_SIZE
