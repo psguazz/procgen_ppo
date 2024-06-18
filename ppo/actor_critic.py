@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.keras import layers, ops, Model
 from tensorflow.keras.layers import MultiHeadAttention, LayerNormalization
 from tensorflow.keras.layers import Dense, Conv3D, Embedding
-from tensorflow.keras.layers import Reshape, Flatten
+from tensorflow.keras.layers import Reshape, Flatten, Dropout
 
 
 HEADS = 4
@@ -11,6 +11,7 @@ LAYERS = 4
 TUBELET_SHAPE = (4, 8, 8)
 EMBED_DIM = 128
 DENSE_DIM = 256
+DROPOUT = 0.1
 
 WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), "weights")
 
@@ -85,11 +86,16 @@ class TransformerEncoder(layers.Layer):
         self.attn_norm = LayerNormalization(epsilon=1e-6)
         self.ff_norm = LayerNormalization(epsilon=1e-6)
 
-    def call(self, input):
+        self.attn_drop = Dropout(DROPOUT)
+        self.ff_drop = Dropout(DROPOUT)
+
+    def call(self, input, training):
         attn = self.attention(input, input)
+        attn = self.attn_drop(attn, training=training)
         attn = self.attn_norm(attn + input)
 
         ff = self.feed_forward(attn)
+        ff = self.ff_drop(ff, training=training)
         ff = self.ff_norm(ff + attn)
 
         return ff
@@ -99,12 +105,18 @@ class ActorCritic(Model):
     def __init__(self, num_actions):
         super().__init__()
 
-        self.common_layers = [
+        self.training = False
+
+        self.embedding_layers = [
             TubeletEmbedding(),
             PositionalEmbedding(),
-        ] + [
+        ]
+
+        self.encoding_layers = [
             TransformerEncoder() for _ in range(LAYERS)
-        ] + [
+        ]
+
+        self.output_layers = [
             Flatten(),
             Dense(DENSE_DIM, activation="relu")
         ]
@@ -113,7 +125,13 @@ class ActorCritic(Model):
         self.critic = Dense(1)
 
     def call(self, x):
-        for layer in self.common_layers:
+        for layer in self.embedding_layers:
+            x = layer(x)
+
+        for layer in self.encoding_layers:
+            x = layer(x, training=self.training)
+
+        for layer in self.output_layers:
             x = layer(x)
 
         return self.actor(x), self.critic(x)
@@ -140,6 +158,9 @@ class ActorCritic(Model):
         log_probs = tf.math.log(probs)
 
         return values, tf.expand_dims(log_probs, 1)
+
+    def set_training(self, training):
+        self.training = training
 
     def save(self, checkpoint):
         if not os.path.isdir(WEIGHTS_PATH):

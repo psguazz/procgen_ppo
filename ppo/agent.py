@@ -44,6 +44,8 @@ class Agent:
         return episode
 
     def train(self, steps):
+        self.model.set_training(True)
+
         rewards = []
 
         while steps > 0:
@@ -52,6 +54,8 @@ class Agent:
             rewards += ts.total_rewards
 
             self._training_loop(ts)
+
+        self.model.set_training(False)
 
         return rewards
 
