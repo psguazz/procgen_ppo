@@ -9,7 +9,7 @@ from ppo.config import ALPHA, EPOCHS, CLIP, BATCH_SIZE
 
 
 class Agent:
-    def __init__(self, env, reset=False):
+    def __init__(self, env):
         self.env = env
 
         self.model = ActorCritic(self.env.n_actions)
@@ -17,8 +17,7 @@ class Agent:
 
         self.huber_loss = Huber(reduction=Reduction.SUM)
 
-        if not reset:
-            self.model.load(self.env.name)
+        self.model.load(self.env.name)
 
     def run_new_episode(self):
         episode = Episode()
