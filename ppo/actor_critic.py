@@ -53,10 +53,26 @@ class PositionalEmbedding(layers.Layer):
             output_dim=EMBED_DIM
         )
 
-    def call(self, x):
+    def call(self, embeddings):
         encoded_positions = self.position_embedding(self.positions)
 
-        return x + encoded_positions
+        return embeddings + encoded_positions
+
+
+class FeedForward(layers.Layer):
+    def __init__(self):
+        super().__init__()
+
+        self.layers = [
+            Dense(EMBED_DIM*4, activation="relu"),
+            Dense(EMBED_DIM),
+        ]
+
+    def call(self, x):
+        for layer in self.layers:
+            x = layer(x)
+
+        return x
 
 
 class TransformerEncoder(layers.Layer):
@@ -64,21 +80,19 @@ class TransformerEncoder(layers.Layer):
         super().__init__()
 
         self.attention = MultiHeadAttention(num_heads=HEADS, key_dim=EMBED_DIM)
+        self.feed_forward = FeedForward()
 
-        self.layers = [
-            LayerNormalization(epsilon=1e-6),
-            Dense(DENSE_DIM, activation="relu"),
-            Dense(EMBED_DIM),
-            LayerNormalization(epsilon=1e-6),
-        ]
+        self.attn_norm = LayerNormalization(epsilon=1e-6)
+        self.ff_norm = LayerNormalization(epsilon=1e-6)
 
-    def call(self, x):
-        x = x + self.attention(x, x)
+    def call(self, input):
+        attn = self.attention(input, input)
+        attn = self.attn_norm(attn + input)
 
-        for layer in self.layers:
-            x = layer(x)
+        ff = self.feed_forward(attn)
+        ff = self.ff_norm(ff + attn)
 
-        return x
+        return ff
 
 
 class ActorCritic(Model):
