@@ -1,17 +1,26 @@
 import os
 import tensorflow as tf
 from tensorflow.keras import Model
+from tensorflow.keras.models import load_model
+from tensorflow.keras.saving import serialize_keras_object as serialize
+from tensorflow.keras.saving import deserialize_keras_object as deserialize
 from tensorflow.keras.layers import Conv3D, Reshape, Dense, LSTM
 from tensorflow.keras.layers import Bidirectional as BI, TimeDistributed as TD
 
-WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), "weights")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "weights")
+
+
+def model_path(checkpoint):
+    filename = checkpoint.replace(":", "_")
+
+    return os.path.join(MODEL_PATH, filename + ".keras")
 
 
 class ActorCritic(Model):
-    def __init__(self, num_actions):
-        super().__init__()
+    def __init__(self, num_actions, common=None, actor=None, critic=None, **k):
+        super().__init__(**k)
 
-        self.common_layers = [
+        self.common = common or [
             Conv3D(16, (1, 8, 8), strides=(1, 4, 4)),
             Conv3D(32, (1, 4, 4), strides=(1, 2, 2)),
             Conv3D(32, (4, 1, 1), strides=(1, 1, 1)),
@@ -20,11 +29,11 @@ class ActorCritic(Model):
             BI(LSTM(256))
         ]
 
-        self.actor = Dense(num_actions)
-        self.critic = Dense(1)
+        self.actor = actor or Dense(num_actions)
+        self.critic = critic or Dense(1)
 
     def call(self, x):
-        for layer in self.common_layers:
+        for layer in self.common:
             x = layer(x)
 
         return self.actor(x), self.critic(x)
@@ -52,25 +61,41 @@ class ActorCritic(Model):
 
         return values, tf.expand_dims(log_probs, 1)
 
-    def save(self, checkpoint):
-        if not os.path.isdir(WEIGHTS_PATH):
-            os.makedirs(WEIGHTS_PATH)
+    def get_config(self):
+        base_config = super().get_config()
+        config = {
 
-        path = self._weights_path(checkpoint)
-        self.save_weights(path)
+            "common": [serialize(lr) for lr in self.common],
+            "actor": serialize(self.actor),
+            "critic": serialize(self.critic)
+        }
 
-    def load(self, checkpoint):
+        return {**base_config, **config}
+
+    @classmethod
+    def from_config(cls, config):
+        common = deserialize(config.pop("common"))
+        actor = deserialize(config.pop("actor"))
+        critic = deserialize(config.pop("critic"))
+
+        return cls(0, common=common, actor=actor, critic=critic, **config)
+
+    def save_model(self, checkpoint):
+        if not os.path.isdir(MODEL_PATH):
+            os.makedirs(MODEL_PATH)
+
+        path = model_path(checkpoint)
+        self.save(path)
+
+    @classmethod
+    def load_model(cls, num_actions, checkpoint):
         try:
-            path = self._weights_path(checkpoint)
-            self.load_weights(path)
-        except FileNotFoundError:
+            path = model_path(checkpoint)
+            return load_model(path, custom_objects={"ActorCritic": cls})
+        except ValueError:
             print("Weights not found; starting from scratch")
+
+            return cls(num_actions)
 
     def _preprocess(self, states):
         return tf.convert_to_tensor(states, dtype=tf.float32) / 255.0
-
-    def _weights_path(self, checkpoint):
-        filename = checkpoint.replace(":", "_")
-        filename = f"{filename}.weights.h5"
-
-        return os.path.join(WEIGHTS_PATH, filename)

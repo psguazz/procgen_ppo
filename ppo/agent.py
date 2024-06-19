@@ -5,19 +5,18 @@ from tensorflow.keras.losses import Huber, Reduction
 from ppo.actor_critic import ActorCritic
 from ppo.episode import Episode
 from ppo.training_set import TrainingSet
-from ppo.config import ALPHA, EPOCHS, CLIP, BATCH_SIZE
+from ppo.config import ALPHA, EPOCHS, CLIP, BATCH_SIZE, STATE_SHAPE
 
 
 class Agent:
     def __init__(self, env):
         self.env = env
 
-        self.model = ActorCritic(self.env.n_actions)
+        self.model = ActorCritic.load_model(self.env.n_actions, self.env.name)
         self.model.compile(optimizer=Adam(learning_rate=ALPHA))
+        self.model.build(STATE_SHAPE)
 
         self.huber_loss = Huber(reduction=Reduction.SUM)
-
-        self.model.load(self.env.name)
 
     def run_new_episode(self):
         episode = Episode()
@@ -75,7 +74,7 @@ class Agent:
                 with tf.GradientTape() as tape:
                     values, log_probs = self.model.eval(b.states, b.actions)
 
-                    assert b.states.shape == (BATCH_SIZE, 4, 64, 64, 3)
+                    assert b.states.shape == (BATCH_SIZE,) + STATE_SHAPE
                     assert b.actions.shape == (BATCH_SIZE,)
 
                     assert b.returns.shape == (BATCH_SIZE, 1)
@@ -99,4 +98,4 @@ class Agent:
                 grads = tape.gradient(loss, params)
                 self.model.optimizer.apply_gradients(zip(grads, params))
 
-        self.model.save(self.env.name)
+        self.model.save_model(self.env.name)
