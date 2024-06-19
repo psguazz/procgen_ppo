@@ -32,6 +32,7 @@ class ActorCritic(Model):
         self.actor = actor or Dense(num_actions)
         self.critic = critic or Dense(1)
 
+    @tf.function
     def call(self, x):
         for layer in self.common:
             x = layer(x)
@@ -64,7 +65,6 @@ class ActorCritic(Model):
     def get_config(self):
         base_config = super().get_config()
         config = {
-
             "common": [serialize(lr) for lr in self.common],
             "actor": serialize(self.actor),
             "critic": serialize(self.critic)

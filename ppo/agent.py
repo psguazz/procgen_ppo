@@ -50,6 +50,7 @@ class Agent:
             rewards += ts.total_rewards
 
             self._training_loop(ts)
+            self.model.save_model(self.env.name)
 
         return rewards
 
@@ -97,5 +98,3 @@ class Agent:
                 params = self.model.trainable_variables
                 grads = tape.gradient(loss, params)
                 self.model.optimizer.apply_gradients(zip(grads, params))
-
-        self.model.save_model(self.env.name)
