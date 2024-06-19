@@ -1,18 +1,33 @@
-
 import os
 import tensorflow as tf
 from tensorflow.keras import Model
-
+from tensorflow.keras.layers import Conv3D, Reshape, Dense, LSTM
+from tensorflow.keras.layers import Bidirectional as BI, TimeDistributed as TD
 
 WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), "weights")
 
 
-class BaseModel(Model):
-    def __init__(self, model_name):
+class ActorCritic(Model):
+    def __init__(self, num_actions):
         super().__init__()
 
-        self.model_name = model_name
-        self.training = False
+        self.common_layers = [
+            Conv3D(16, (1, 8, 8), strides=(1, 4, 4)),
+            Conv3D(32, (1, 4, 4), strides=(1, 2, 2)),
+            Conv3D(32, (4, 1, 1), strides=(1, 1, 1)),
+            Reshape((4, -1)),
+            TD(Dense(256, activation="relu")),
+            BI(LSTM(256))
+        ]
+
+        self.actor = Dense(num_actions)
+        self.critic = Dense(1)
+
+    def call(self, x):
+        for layer in self.common_layers:
+            x = layer(x)
+
+        return self.actor(x), self.critic(x)
 
     def choose(self, state):
         inputs = self._preprocess([state])
@@ -37,9 +52,6 @@ class BaseModel(Model):
 
         return values, tf.expand_dims(log_probs, 1)
 
-    def set_training(self, training):
-        self.training = training
-
     def save(self, checkpoint):
         if not os.path.isdir(WEIGHTS_PATH):
             os.makedirs(WEIGHTS_PATH)
@@ -59,6 +71,6 @@ class BaseModel(Model):
 
     def _weights_path(self, checkpoint):
         filename = checkpoint.replace(":", "_")
-        filename = f"{filename}.{self.model_name}.weights.h5"
+        filename = f"{filename}.weights.h5"
 
         return os.path.join(WEIGHTS_PATH, filename)

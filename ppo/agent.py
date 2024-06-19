@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.math import exp, reduce_mean, minimum
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber, Reduction
-from ppo.models.convnet import ActorCritic
+from ppo.actor_critic import ActorCritic
 from ppo.episode import Episode
 from ppo.training_set import TrainingSet
 from ppo.config import ALPHA, EPOCHS, CLIP, BATCH_SIZE
@@ -43,8 +43,6 @@ class Agent:
         return episode
 
     def train(self, steps):
-        self.model.set_training(True)
-
         rewards = []
 
         while steps > 0:
@@ -53,8 +51,6 @@ class Agent:
             rewards += ts.total_rewards
 
             self._training_loop(ts)
-
-        self.model.set_training(False)
 
         return rewards
 
