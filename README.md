@@ -4,9 +4,7 @@ Project work for the course _Autonomous and Adaptive Systems_
 
 ## What is this?
 
-It's a semi-decent implementation of the PPO algorithm, tested this on various ProcGen environments.
-
-It uses a combined model for both actor and critic based on ViViT (Video Visual Transformer).
+It's a semi-decent implementation of the PPO algorithm, tested this on various ProcGen environments, using a combined model for both actor and critic.
 
 ## Usage
 
