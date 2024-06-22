@@ -9,7 +9,7 @@ class Env:
     def __init__(self, name, training=False):
         self.name = name
 
-        levels = 200 if training else 500
+        levels = 200 if training else 0
 
         self.env = gym.make(
             self.name,

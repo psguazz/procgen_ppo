@@ -23,7 +23,6 @@ class ActorCritic(Model):
         self.common = common or [
             Conv3D(16, (1, 8, 8), strides=(1, 4, 4)),
             Conv3D(32, (1, 4, 4), strides=(1, 2, 2)),
-            Conv3D(32, (4, 1, 1), strides=(1, 1, 1)),
             Reshape((4, -1)),
             TD(Dense(256, activation="relu")),
             BI(LSTM(256))

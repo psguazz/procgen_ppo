@@ -69,7 +69,7 @@ class Agent:
         print(f"Training on {len(ts.episodes)} episodes...")
 
         for e in range(EPOCHS):
-            print(f"{e}/{EPOCHS}")
+            print(f"{e+1}/{EPOCHS}")
 
             for b in ts.batches():
                 with tf.GradientTape() as tape:
